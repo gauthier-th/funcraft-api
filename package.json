@@ -1,0 +1,24 @@
+{
+  "name": "funcraft-api",
+  "version": "1.0.0",
+  "description": "An API for Funcraft.net",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gauthier-th/funcraft-api.git"
+  },
+  "keywords": [],
+  "author": "gauthier-th",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gauthier-th/funcraft-api/issues"
+  },
+  "homepage": "https://github.com/gauthier-th/funcraft-api#readme",
+  "dependencies": {
+    "node-html-parser": "^2.0.2",
+    "request": "^2.88.2"
+  }
+}
