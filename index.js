@@ -40,7 +40,7 @@ const HTMLParser = require("node-html-parser");
  */
 
 
-const modes = ['rush', 'landrush', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infecte', 'survival', 'blitz', 'pvpsmash'];
+const modes = ['rush', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infecte', 'survival', 'blitz', 'pvpsmash', 'landrush'];
 const months = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
 const aliases = {
 	"infected": "infecte",
