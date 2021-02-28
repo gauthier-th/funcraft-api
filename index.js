@@ -40,7 +40,7 @@ const HTMLParser = require("node-html-parser");
  */
 
 
-const modes = ['rush', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infecte', 'survival', 'blitz', 'pvpsmash', 'landrush'];
+const modes = ['rush_mdt', 'rush_retro', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infecte', 'survival', 'blitz', 'pvpsmash', 'landrush'];
 const months = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
 const aliases = {
 	"infected": "infecte",
@@ -49,7 +49,8 @@ const aliases = {
 	"mma": "octogone",
 	"pvp": "pvpsmash",
 	"hika": "hikabrain",
-	"sky": "skywars"
+	"sky": "skywars",
+	"rush": "rush_mdt"
 };
 
 /**
@@ -146,6 +147,8 @@ function parseMonth(month) {
 function getMode(mode) {
 	if (mode in aliases)
 		mode = aliases[mode];
+	else if (mode.replace(/\s+/g, '_') in aliases)
+		mode = aliases[mode.replace(/\s+/g, '_')];
 	if (modes.includes(mode))
 		return modes.indexOf(mode);
 }
@@ -170,7 +173,7 @@ function statsFromData(stats, datas, month, numMode) {
 	stats.data.temps_jeu = datas[valColumn++];
 	stats.data.kills = datas[valColumn++];
 	stats.data.morts = datas[valColumn++];
-	if (modes[numMode] == 'rush' || modes[numMode] == 'landrush')
+	if (modes[numMode] == 'rush_mdt' || modes[numMode] == 'rush_retro' || modes[numMode] == 'landrush')
 		stats.data.lits_detruits = datas[valColumn++];
 	if (modes[numMode] == 'blitz')
 		stats.data.degats_nexus = datas[valColumn++];
@@ -226,7 +229,7 @@ function statsFromData(stats, datas, month, numMode) {
 		else
 			stats.stats.seconde_kill = Round((stats.data.temps_jeu * 60) / stats.data.kills, 3);
 	}
-	if (modes[numMode] == 'rush' || modes[numMode] == 'landrush') {
+	if (modes[numMode] == 'rush_mdt' || modes[numMode] == 'rush_retro' || modes[numMode] == 'landrush') {
 		if (stats.data.parties == 0)
 			stats.stats.lits_partie = 0;
 		else
@@ -594,7 +597,7 @@ function computeStats(stats, data = false) {
 		else
 			stats['stats']['temps_partie'] = ((stats['stats']['temps_partie'] - (stats['stats']['temps_partie'] % 60)) / 60) + ':' + Round(stats['stats']['temps_partie'] % 60, 3);
 
-		if (stats['mode_jeu'] == 'rush')
+		if (stats['mode_jeu'] == 'rush_mdt' || stats['mode_jeu'] == 'rush_retro')
 			stats['stats']['HAT'] = Round(Math.sqrt(stats['data']['parties']/stats['data']['temps_jeu']*60 + stats['stats']['winrate']/100*38 + Math.sqrt(stats['stats']['kd']*300)) * 100, 3);
 		else if (stats['mode_jeu'] == 'hikabrain')
 			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*25 + stats['data']['parties']/stats['data']['temps_jeu']*60 + stats['stats']['kd'] * 8) * 100, 3);
