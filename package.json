@@ -1,6 +1,6 @@
 {
   "name": "@gauthier-th/funcraft-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "An API for Funcraft.net",
   "main": "index.js",
   "scripts": {
