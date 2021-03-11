@@ -1,5 +1,5 @@
 {
-  "name": "funcraft-api",
+  "name": "@gauthier-th/funcraft-api",
   "version": "1.0.2",
   "description": "An API for Funcraft.net",
   "main": "index.js",
@@ -20,5 +20,8 @@
   "dependencies": {
     "node-html-parser": "^2.0.2",
     "request": "^2.88.2"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   }
 }
