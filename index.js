@@ -152,8 +152,8 @@ function parseMonth(month) {
 function getMode(mode) {
 	if (mode in aliases)
 		mode = aliases[mode];
-	else if (mode.replace(/\s+/g, '_') in aliases)
-		mode = aliases[mode.replace(/\s+/g, '_')];
+	else if (mode.replace(/[\s-]+/g, '_') in aliases)
+		mode = aliases[mode.replace(/[\s-]+/g, '_')];
 	if (modes.includes(mode))
 		return modes.indexOf(mode);
 }
