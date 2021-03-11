@@ -150,10 +150,9 @@ function parseMonth(month) {
 	return numMonth + 1;
 }
 function getMode(mode) {
+	mode = mode.replace(/[\s-]+/g, '_');
 	if (mode in aliases)
 		mode = aliases[mode];
-	else if (mode.replace(/[\s-]+/g, '_') in aliases)
-		mode = aliases[mode.replace(/[\s-]+/g, '_')];
 	if (modes.includes(mode))
 		return modes.indexOf(mode);
 }
@@ -532,6 +531,7 @@ function table(period, mode) {
 		mode = vGetMode(mode);
 		if (mode === undefined)
 			return reject({ error: "Specified mode is incorrect.", exit_code: 1 });
+		mode = mode.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush');
 		request('https://www.funcraft.net/fr/classement/' + encodeURIComponent(mode) + '/' + encodeURIComponent(period) + '?sendData=1&_=' + Date.now(), (err, res, body) => {
 			if (err)
 				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 2 });
