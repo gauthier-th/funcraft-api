@@ -75,52 +75,57 @@ function stats(period, mode, pseudo) {
 		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(pseudo), (err, res, body) => {
 			if (err)
 				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 9 });
-			const dom = HTMLParser.parse(body);
+			try {
+				const dom = HTMLParser.parse(body);
 
-			const pseudoChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
-			if (!pseudoChildren)
-				return reject({ error: 'Player "' + pseudo + '" doesn\'t exists.', exit_code: 4 })
+				const pseudoChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
+				if (!pseudoChildren)
+					return reject({ error: 'Player "' + pseudo + '" doesn\'t exists.', exit_code: 4 })
 
-			const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numMode * 2 + 1].childNodes[1].childNodes[3].childNodes;
-			const datas = [];
-			for (let i = 3; i < rows.length; i++) {
-				const row = rows[i];
-				if (row.childNodes.length > 0) {
-					let contentRow;
-					if (monthDiff !== 0)
-						contentRow = row.childNodes[5].childNodes[monthDiff * 2 - 1].text;
-					else
-						contentRow = row.childNodes[3].text
-					if (contentRow.trim().replace("-", "") == '')
-						datas.push(0);
-					else if (contentRow.trim().match(/\d+[a-z]\s+\d+[a-z]/mi)) {
-						const elems = contentRow.trim().match(/(\d+)[a-z]\s+(\d+)[a-z]/mi);
-						datas.push(parseInt(elems[1], 10) * 60 + parseInt(elems[2], 10));
+				const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numMode * 2 + 1].childNodes[1].childNodes[3].childNodes;
+				const datas = [];
+				for (let i = 3; i < rows.length; i++) {
+					const row = rows[i];
+					if (row.childNodes.length > 0) {
+						let contentRow;
+						if (monthDiff !== 0)
+							contentRow = row.childNodes[5].childNodes[monthDiff * 2 - 1].text;
+						else
+							contentRow = row.childNodes[3].text
+						if (contentRow.trim().replace("-", "") == '')
+							datas.push(0);
+						else if (contentRow.trim().match(/\d+[a-z]\s+\d+[a-z]/mi)) {
+							const elems = contentRow.trim().match(/(\d+)[a-z]\s+(\d+)[a-z]/mi);
+							datas.push(parseInt(elems[1], 10) * 60 + parseInt(elems[2], 10));
+						}
+						else
+							datas.push(parseInt(contentRow.trim().replace(/\s+/gi, ""), 10));
 					}
-					else
-						datas.push(parseInt(contentRow.trim().replace(/\s+/gi, ""), 10));
 				}
+				if (datas[2] === 0)
+					return reject({ error: "Non-existent statistics for this period.", exit_code: 1 });
+
+				const stats = {};
+				stats.exit_code = 0;
+				stats.error = null;
+
+				let playerUsername = pseudoChildren.childNodes[1].childNodes[pseudoChildren.childNodes[1].childNodes.length - 2].text.trim();
+				while (playerUsername.includes(' ')) {
+					playerUsername = playerUsername.split(' ')[1];
+				}
+				stats.pseudo = playerUsername;
+
+				statsFromData(stats, datas, month, numMode);
+				
+				// stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].attributes.src;
+				stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].rawAttrs.match(/^src="(.*)"$/)[1];
+				stats['player-id'] = res.request.uri.href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
+
+				resolve(stats);
 			}
-			if (datas[2] === 0)
-				return reject({ error: "Non-existent statistics for this period.", exit_code: 1 });
-
-			const stats = {};
-			stats.exit_code = 0;
-			stats.error = null;
-
-			let playerUsername = pseudoChildren.childNodes[1].childNodes[pseudoChildren.childNodes[1].childNodes.length - 2].text.trim();
-			while (playerUsername.includes(' ')) {
-				playerUsername = playerUsername.split(' ')[1];
+			catch (e) {
+				reject({ error: "Unable to connect to funcraft.net.", exit_code: 9 });
 			}
-			stats.pseudo = playerUsername;
-
-			statsFromData(stats, datas, month, numMode);
-			
-			// stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].attributes.src;
-			stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].rawAttrs.match(/^src="(.*)"$/)[1];
-			stats['player-id'] = res.request.uri.href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
-
-			resolve(stats);
 		});
 	});
 }
