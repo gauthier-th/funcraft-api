@@ -4,46 +4,46 @@ const HTMLParser = require("node-html-parser");
 
 /**
  * @typedef {{
- *   exit_code: number,
+ *   code: number,
  *   error: string,
- *   pseudo: string,
- *   num_mois?: number,
- *   nom_mois: string,
- *   mode_jeu: string,
- *   rang: number,
+ *   userId: string,
+ *   username: string,
+ *   month?: number,
+ *   monthName: string,
+ *   game: string,
+ *   rank: number,
+ *   skin?: string,
  *   data: {
  *     points: number,
- *     parties: number,
- *     victoires: number,
- *     defaites: number,
- *     temps_jeu: number,
+ *     gameCount: number,
+ *     winCount: number,
+ *     defeatCount: number,
+ *     gameTime: number,
  *     kills: number,
- *     morts: number
+ *     deathCount: number
  *   },
  *   stats: {
  *     winrate: number,
  *     kd: number,
- *     ragequit: number,
- *     kills_game: number,
- *     morts_game: number,
- *     points_game: number,
- *     temps_partie?: number,
- *     kills_minute?: number,
- *     seconde_kill?: number,
- *     lits_partie?: number,
- *     nexus_partie?: number,
- *     degats_partie?: number
- *   },
- *   skin?: string,
- *   'player-id': string
+ *     ragequit?: number,
+ *     killsPerGame: number,
+ *     deathsPerGame: number,
+ *     pointsPerGame: number,
+ *     timePerGame?: number,
+ *     killsPerMinute?: number,
+ *     secondsPerKill?: number,
+ *     bedsPerGame?: number,
+ *     nexusPerGame?: number,
+ *     damagePerGame?: number
+ *   }
  * }} StatsResponse
  */
 
 
-const modes = ['rush_retro', 'rush_mdt', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infecte', 'survival', 'blitz', 'pvpsmash', 'landrush'];
-const months = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
-const aliases = {
-	"infected": "infecte",
+const games = ['rush_retro', 'rush_mdt', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infected', 'survival', 'blitz', 'pvpsmash', 'landrush'];
+const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+const gameAliases = {
+	"infecte": "infected",
 	"shoot": "shootcraft",
 	"land": "landrush",
 	"mma": "octogone",
@@ -52,38 +52,52 @@ const aliases = {
 	"sky": "skywars",
 	"rush": "rush_mdt"
 };
+const monthAliases = {
+	'janvier': 'january',
+	'fevrier': 'february',
+	'mars': 'march',
+	'avril': 'april',
+	'mai': 'may',
+	'juin': 'june',
+	'juillet': 'july',
+	'aout': 'august',
+	'septembre': 'september',
+	'octobre': 'october',
+	'novembre': 'november',
+	'decembre': 'december'
+};
 
 /**
  * Get stats for a player, for a game in a specific period
  * @param {string} period 
- * @param {string} mode 
- * @param {string} pseudo 
+ * @param {string} game 
+ * @param {string} username 
  * @returns {Promise.<StatsResponse>}
  */
-function stats(period, mode, pseudo) {
+function stats(period, game, username) {
 	return new Promise((resolve, reject) => {
 		period = period.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-		mode = mode.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-		pseudo = pseudo.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+		game = game.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+		username = username.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 		const month = getMonth(period);
 		const monthDiff = parseMonth(month);
 		if (monthDiff === undefined || monthDiff > 4)
-			return reject({ error: "Specified period is incorrect.", exit_code: 2 });
-		const numMode = getMode(mode);
-		if (numMode === undefined)
-			return reject({ error: "Specified mode is incorrect.", exit_code: 3 });
-		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(pseudo), async (err, res, body) => {
+			return reject({ error: "Specified period is incorrect.", code: 2 });
+		const numGame = getGame(game);
+		if (numGame === undefined)
+			return reject({ error: "Specified game is incorrect.", code: 3 });
+		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), async (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 9 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 9 });
 			try {
-				const stats = parseStats(body, res.request.uri.href, { numMode, monthDiff });
-				if (stats.exit_code === 0)
+				const stats = parseStats(body, res.request.uri.href, { username, monthDiff, numGame, month });
+				if (stats.code === 0)
 					resolve(stats);
 				else
 					reject(stats);
 			}
 			catch (e) {
-				reject({ error: "Unable to connect to funcraft.net.", exit_code: 9 });
+				reject({ error: "Unable to connect to funcraft.net.", code: 9 });
 			}
 		});
 	});
@@ -95,14 +109,14 @@ function stats(period, mode, pseudo) {
  * @param {object} data 
  * @returns {StatsResponse}
  */
-function parseStats(body, href, { pseudo, monthDiff, numMode, month }) {
+function parseStats(body, href, { username, monthDiff, numGame, month }) {
 	const dom = HTMLParser.parse(body);
 
-	const pseudoChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
-	if (!pseudoChildren)
-		return { error: 'Player "' + pseudo + '" doesn\'t exists.', exit_code: 4 };
+	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
+	if (!usernameChildren)
+		return { error: 'Player "' + username + '" doesn\'t exists.', code: 4 };
 
-	const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numMode * 2 + 1].childNodes[1].childNodes[3].childNodes;
+	const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numGame * 2 + 1].childNodes[1].childNodes[3].childNodes;
 	const datas = [];
 	for (let i = 3; i < rows.length; i++) {
 		const row = rows[i];
@@ -123,23 +137,23 @@ function parseStats(body, href, { pseudo, monthDiff, numMode, month }) {
 		}
 	}
 	if (datas[2] === 0)
-		return { error: "Non-existent statistics for this period.", exit_code: 1 };
+		return { error: "Non-existent statistics for this period.", code: 1 };
 
 	const stats = {};
-	stats.exit_code = 0;
+	stats.code = 0;
 	stats.error = null;
 
-	let playerUsername = pseudoChildren.childNodes[1].childNodes[pseudoChildren.childNodes[1].childNodes.length - 2].text.trim();
+	let playerUsername = usernameChildren.childNodes[1].childNodes[usernameChildren.childNodes[1].childNodes.length - 2].text.trim();
 	while (playerUsername.includes(' ')) {
 		playerUsername = playerUsername.split(' ')[1];
 	}
-	stats.pseudo = playerUsername;
+	stats.username = playerUsername;
 
-	statsFromData(stats, datas, month, numMode);
-	
+	statsFromData(stats, datas, month, numGame);
+
 	// stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].attributes.src;
 	stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].rawAttrs.match(/^src="(.*)"$/)[1];
-	stats['player-id'] = href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
+	stats.userId = href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
 
 	return stats;
 }
@@ -148,6 +162,8 @@ function getMonth(period) {
 		return parseInt(period);
 	if (months.includes(period))
 		return months.indexOf(period) + 1;
+	if (Object.keys(monthAliases).includes(period))
+		return months.indexOf(monthAliases[period]) + 1;
 	if (period === "month" || period === "mois")
 		return (new Date()).getMonth() + 1;
 	if (period === "always" || period === "toujours")
@@ -163,107 +179,107 @@ function parseMonth(month) {
 		numMonth = 12 + numMonth;
 	return numMonth + 1;
 }
-function getMode(mode) {
-	mode = mode.replace(/[\s-]+/g, '_');
-	if (mode in aliases)
-		mode = aliases[mode];
-	if (modes.includes(mode))
-		return modes.indexOf(mode);
+function getGame(game) {
+	game = game.replace(/[\s-]+/g, '_');
+	if (Object.keys(gameAliases).includes(game))
+		game = gameAliases[game];
+	if (games.includes(game))
+		return games.indexOf(game);
 }
 
-function statsFromData(stats, datas, month, numMode) {
+function statsFromData(stats, datas, month, numGame) {
 	if (month !== null && month !== undefined) {
-		stats.num_mois = month;
-		stats.nom_mois = month === 0 ? 'toujours' : months[month - 1];
+		stats.month = month;
+		stats.monthName = month === 0 ? 'always' : months[month - 1];
 	}
-	stats.mode_jeu = modes[numMode];
-	stats.rang = datas[0];
+	stats.game = games[numGame];
+	stats.rank = datas[0];
 	stats.data = {};
 
 	let valColumn = 1;
 	stats.data.points = datas[valColumn++];
-	stats.data.parties = datas[valColumn++];
-	stats.data.victoires = datas[valColumn++];
-	if (modes[numMode] == 'survival' || modes[numMode] == 'skywars' || modes[numMode] == 'pvpsmash' || modes[numMode] == 'octogone' || modes[numMode] == 'shootcraft' || modes[numMode] == 'infecte')
-		stats.data.defaites = stats.data.parties - stats.data.victoires;
+	stats.data.gameCount = datas[valColumn++];
+	stats.data.winCount = datas[valColumn++];
+	if (games[numGame] == 'survival' || games[numGame] == 'skywars' || games[numGame] == 'pvpsmash' || games[numGame] == 'octogone' || games[numGame] == 'shootcraft' || games[numGame] == 'infecte')
+		stats.data.defeatCount = stats.data.gameCount - stats.data.winCount;
 	else
-		stats.data.defaites = datas[valColumn++];
-	stats.data.temps_jeu = datas[valColumn++];
+		stats.data.defeatCount = datas[valColumn++];
+	stats.data.gameTime = datas[valColumn++];
 	stats.data.kills = datas[valColumn++];
-	stats.data.morts = datas[valColumn++];
-	if (modes[numMode] == 'rush_mdt' || modes[numMode] == 'rush_retro' || modes[numMode] == 'landrush')
+	stats.data.deathCount = datas[valColumn++];
+	if (games[numGame] == 'rush_mdt' || games[numGame] == 'rush_retro' || games[numGame] == 'landrush')
 		stats.data.lits_detruits = datas[valColumn++];
-	if (modes[numMode] == 'blitz')
+	if (games[numGame] == 'blitz')
 		stats.data.degats_nexus = datas[valColumn++];
-	if (modes[numMode] == 'pvpsmash' || modes[numMode] == 'octogone')
+	if (games[numGame] == 'pvpsmash' || games[numGame] == 'octogone')
 		stats.data.degats = datas[valColumn++];
 
 	stats.stats = {};
-	if (stats.data.parties == 0)
+	if (stats.data.gameCount == 0)
 		stats.stats.winrate = 0;
-	else if (stats.data.victoires == 0 && stats.data.defaites == 0)
-		stats.stats.winrate = Round((stats.data.victoires / stats.data.parties) * 100, 3);
+	else if (stats.data.winCount == 0 && stats.data.defeatCount == 0)
+		stats.stats.winrate = Round((stats.data.winCount / stats.data.gameCount) * 100, 3);
 	else
-		stats.stats.winrate = Round((stats.data.victoires / (stats.data.victoires + stats.data.defaites)) * 100, 3);
-	if (stats.data.morts == 0)
+		stats.stats.winrate = Round((stats.data.winCount / (stats.data.winCount + stats.data.defeatCount)) * 100, 3);
+	if (stats.data.deathCount == 0)
 		stats.stats.kd = stats.data.kills;
 	else
-		stats.stats.kd = Round(stats.data.kills / stats.data.morts, 3);
-	if (modes[numMode] == 'shootcraft') {
-		if (stats.data.parties == 0)
+		stats.stats.kd = Round(stats.data.kills / stats.data.deathCount, 3);
+	if (games[numGame] == 'shootcraft') {
+		if (stats.data.gameCount == 0)
 			stats.stats.ragequit = 0;
 		else
-			stats.stats.ragequit = Round((((stats.data.temps_jeu / stats.data.parties) / 5) - 1) * (-100), 3);
+			stats.stats.ragequit = Round((((stats.data.gameTime / stats.data.gameCount) / 5) - 1) * (-100), 3);
 	}
-	if (stats.data.parties == 0)
-		stats.stats.kills_game = 0;
+	if (stats.data.gameCount == 0)
+		stats.stats.killsPerGame = 0;
 	else
-		stats.stats.kills_game = Round(stats.data.kills / stats.data.parties, 3);
-	if (stats.data.parties == 0)
-		stats.stats.morts_game = 0;
+		stats.stats.killsPerGame = Round(stats.data.kills / stats.data.gameCount, 3);
+	if (stats.data.gameCount == 0)
+		stats.stats.deathsPerGame = 0;
 	else
-		stats.stats.morts_game = Round(stats.data.morts / stats.data.parties, 3);
-	if (stats.data.parties == 0)
-		stats.stats.points_game = 0;
+		stats.stats.deathsPerGame = Round(stats.data.deathCount / stats.data.gameCount, 3);
+	if (stats.data.gameCount == 0)
+		stats.stats.pointsPerGame = 0;
 	else
-		stats.stats.points_game = Round(stats.data.points / stats.data.parties, 3);
-	if (modes[numMode] != 'shootcraft') {
-		if (stats.data.parties == 0)
-			stats.stats.temps_partie = 0;
+		stats.stats.pointsPerGame = Round(stats.data.points / stats.data.gameCount, 3);
+	if (games[numGame] != 'shootcraft') {
+		if (stats.data.gameCount == 0)
+			stats.stats.timePerGame = 0;
 		else
-			stats.stats.temps_partie = Round(stats.data.temps_jeu * 60 / stats.data.parties, 3);
+			stats.stats.timePerGame = Round(stats.data.gameTime * 60 / stats.data.gameCount, 3);
 	}
-	if (stats.data.parties == 0)
-		stats.stats.kills_minute = 0;
+	if (stats.data.gameCount == 0)
+		stats.stats.killsPerMinute = 0;
 	else {
-		if (modes[numMode] == 'shootcraft')
-			stats.stats.kills_minute = Round(stats.data.kills / (stats.data.parties * 5), 3);
+		if (games[numGame] == 'shootcraft')
+			stats.stats.killsPerMinute = Round(stats.data.kills / (stats.data.gameCount * 5), 3);
 		else
-			stats.stats.kills_minute = Round(stats.stats.kills_game / (stats.stats.temps_partie / 60), 3);
+			stats.stats.killsPerMinute = Round(stats.stats.killsPerGame / (stats.stats.timePerGame / 60), 3);
 	}
-	if (modes[numMode] == 'shootcraft') {
+	if (games[numGame] == 'shootcraft') {
 		if (stats.data.kills == 0)
-			stats.stats.seconde_kill = 0;
+			stats.stats.secondsPerKill = 0;
 		else
-			stats.stats.seconde_kill = Round((stats.data.temps_jeu * 60) / stats.data.kills, 3);
+			stats.stats.secondsPerKill = Round((stats.data.gameTime * 60) / stats.data.kills, 3);
 	}
-	if (modes[numMode] == 'rush_mdt' || modes[numMode] == 'rush_retro' || modes[numMode] == 'landrush') {
-		if (stats.data.parties == 0)
-			stats.stats.lits_partie = 0;
+	if (games[numGame] == 'rush_mdt' || games[numGame] == 'rush_retro' || games[numGame] == 'landrush') {
+		if (stats.data.gameCount == 0)
+			stats.stats.bedsPerGame = 0;
 		else
-			stats.stats.lits_partie = Round(stats.data.lits_detruits / stats.data.parties, 3);
+			stats.stats.bedsPerGame = Round(stats.data.lits_detruits / stats.data.gameCount, 3);
 	}
-	if (modes[numMode] == 'blitz') {
-		if (stats.data.parties == 0)
-			stats.stats.nexus_partie = 0;
+	if (games[numGame] == 'blitz') {
+		if (stats.data.gameCount == 0)
+			stats.stats.nexusPerGame = 0;
 		else
-			stats.stats.nexus_partie = Round(stats.data.degats_nexus / stats.data.parties, 3);
+			stats.stats.nexusPerGame = Round(stats.data.degats_nexus / stats.data.gameCount, 3);
 	}
-	if (modes[numMode] == 'pvpsmash' || modes[numMode] == 'octogone') {
-		if (stats.data.parties == 0)
-			stats.stats.degats_partie = 0;
+	if (games[numGame] == 'pvpsmash' || games[numGame] == 'octogone') {
+		if (stats.data.gameCount == 0)
+			stats.stats.damagePerGame = 0;
 		else
-			stats.stats.degats_partie = Round(stats.data.degats / stats.data.parties, 3);
+			stats.stats.damagePerGame = Round(stats.data.degats / stats.data.gameCount, 3);
 	}
 
 	return stats;
@@ -271,34 +287,34 @@ function statsFromData(stats, datas, month, numMode) {
 
 /**
  * Get all stats of a player
- * @param {string} pseudo 
+ * @param {string} username 
  * @returns {Promise.<{
- *   [mode: string]: {
+ *   [game: string]: {
  *     [period: string]: StatsResponse
- *     toujours?: StatsResponse
+ *     always?: StatsResponse
  *   },
  *   infos: {
- *     pseudo: string,
+ *     username: string,
  *     skin: string,
- *     'player-id': string
+ *     userId: string
  *   }
  * }>}
  */
-function allStats(pseudo) {
+function allStats(username) {
 	return new Promise((resolve, reject) => {
-		pseudo = pseudo.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(pseudo), (err, res, body) => {
+		username = username.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 9 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 9 });
 			try {
-				const stats = parseAllStats(body, res.request.uri.href, { pseudo });
-				if (stats.exit_code === 0)
+				const stats = parseAllStats(body, res.request.uri.href, { username });
+				if (stats.code === 0)
 					resolve(stats);
 				else
 					reject(stats);
 			}
 			catch (e) {
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 9 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 9 });
 			}
 		});
 	});
@@ -309,25 +325,25 @@ function allStats(pseudo) {
  * @param {string} href 
  * @param {object} data 
  * @returns {{
- *   [mode: string]: {
+ *   [game: string]: {
  *     [period: string]: StatsResponse
- *     toujours?: StatsResponse
+ *     always?: StatsResponse
  *   },
  *   infos: {
- *     pseudo: string,
+ *     username: string,
  *     skin: string,
- *     'player-id': string
+ *     userId: string
  *   }
  * }}
  */
-function parseAllStats(body, href, { pseudo }) {
+function parseAllStats(body, href, { username }) {
 	const dom = HTMLParser.parse(body);
 
-	const pseudoChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
-	if (!pseudoChildren)
-		return { error: 'Player "' + pseudo + '" doesn\'t exists.', exit_code: 4 };
+	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
+	if (!usernameChildren)
+		return { error: 'Player "' + username + '" doesn\'t exists.', code: 4 };
 		
-	let playerUsername = pseudoChildren.childNodes[1].childNodes[pseudoChildren.childNodes[1].childNodes.length - 2].text.trim();
+	let playerUsername = usernameChildren.childNodes[1].childNodes[usernameChildren.childNodes[1].childNodes.length - 2].text.trim();
 	while (playerUsername.includes(' ')) {
 		playerUsername = playerUsername.split(' ')[1];
 	}
@@ -339,17 +355,17 @@ function parseAllStats(body, href, { pseudo }) {
 
 	const allStats = {};
 	allStats.infos = {};
-	allStats.infos.pseudo = playerUsername;
+	allStats.infos.username = playerUsername;
 	allStats.infos.skin = skin;
-	allStats.infos["player-id"] = playerId;
+	allStats.infos.userId = playerId;
 
-	for (let numMode = 0; numMode < 10; numMode++) {
-		const modeName = modes[numMode];
-		const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numMode * 2 + 1].childNodes[1].childNodes[3].childNodes;
-		allStats[modeName] = {};
+	for (let numGame = 0; numGame < 10; numGame++) {
+		const gameName = games[numGame];
+		const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numGame * 2 + 1].childNodes[1].childNodes[3].childNodes;
+		allStats[gameName] = {};
 		for (let monthDiff = 0; monthDiff < 5; monthDiff++) {
 			const month = monthDiff === 0 ? 0 : (((new Date()).getMonth() - monthDiff + 1) < 0 ? 12 + ((new Date()).getMonth() - monthDiff + 1) : ((new Date()).getMonth() - monthDiff + 1)) % 12 + 1;
-			const monthName = month === 0 ? 'toujours' : months[month - 1];
+			const monthName = month === 0 ? 'always' : months[month - 1];
 			const datas = [];
 			for (let i = 3; i < rows.length; i++) {
 				const row = rows[i];
@@ -371,20 +387,20 @@ function parseAllStats(body, href, { pseudo }) {
 			}
 			
 			if (datas[2] === 0)
-				allStats[modeName][monthName] = null;
+				allStats[gameName][monthName] = null;
 			else {
 				const stats = {};
-				stats.exit_code = 0;
+				stats.code = 0;
 				stats.error = null;
 
-				stats.pseudo = playerUsername;
+				stats.username = playerUsername;
 
-				statsFromData(stats, datas, month, numMode);
+				statsFromData(stats, datas, month, numGame);
 				
 				stats.skin = skin;
-				stats['player-id'] = playerId;
+				stats.userId = playerId;
 
-				allStats[modeName][monthName] = stats;
+				allStats[gameName][monthName] = stats;
 			}
 		}
 	}
@@ -394,24 +410,24 @@ function parseAllStats(body, href, { pseudo }) {
 
 /**
  * Get infos about a player
- * @param {string} pseudo 
+ * @param {string} username 
  * @returns {Promise.<{
- *   exit_code: number,
+ *   code: number,
  *   error: string,
  *   grade: string,
- *   pseudo: string,
- *   'player-id': string,
+ *   username: string,
+ *   userId: string,
  *   skin: string,
  *   inscription: string,
  *   'last-connection': string,
  *   gloires: number,
- *   parties: number,
+ *   gameCount: number,
  *   points: number,
- *   victoires: number,
- *   defaites: number,
- *   temps_jeu: number,
+ *   winCount: number,
+ *   defeatCount: number,
+ *   gameTime: number,
  *   kills: number,
- *   morts: number,
+ *   deathCount: number,
  *   amis:  {
  *     nom: string,
  *     skin: string
@@ -419,79 +435,79 @@ function parseAllStats(body, href, { pseudo }) {
  *   ban: ("TEMP"|"DEF"|"NONE")
  * }>}
  */
-function infos(pseudo) {
+function infos(username) {
 	return new Promise((resolve, reject) => {
-		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(pseudo), (err, res, body) => {
+		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 6 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 6 });
 			
 			try {
-				const infos = parseInfos(body, res.request.uri.href, { pseudo });
-				if (infos.exit_code !== 0)
+				const infos = parseInfos(body, res.request.uri.href, { username });
+				if (infos.code !== 0)
 					reject(infos);
-				request('https://www.funcraft.net/fr/joueur/' + encodeURIComponent(infos['player-id']) + '?sendFriends=1', (fErr, fRes, fBody) => {
+				request('https://www.funcraft.net/fr/joueur/' + encodeURIComponent(infos.userId) + '?sendFriends=1', (fErr, fRes, fBody) => {
 					if (fErr)
-						return { error: "Unable to connect to funcraft.net.", exit_code: 6 };
+						return { error: "Unable to connect to funcraft.net.", code: 6 };
 					try {
 						const friends = parseFriends(fBody);
 						infos.amis = friends;
 						resolve(infos);
 					}
 					catch (e) {
-						return reject({ error: "Unable to connect to funcraft.net.", exit_code: 6 });
+						return reject({ error: "Unable to connect to funcraft.net.", code: 6 });
 					}
 				});
 			}
 			catch (e) {
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 6 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 6 });
 			}
 		});
 	});
 }
 /**
  * Get infos from html body
- * @param {string} pseudo 
+ * @param {string} username 
  * @param {string} href 
  * @param {object} data 
  * @returns {{
- *   exit_code: number,
+ *   code: number,
  *   error: string,
  *   grade: string,
- *   pseudo: string,
- *   'player-id': string,
+ *   username: string,
+ *   userId: string,
  *   skin: string,
  *   inscription: string,
  *   'last-connection': string,
  *   gloires: number,
- *   parties: number,
+ *   gameCount: number,
  *   points: number,
- *   victoires: number,
- *   defaites: number,
- *   temps_jeu: number,
+ *   winCount: number,
+ *   defeatCount: number,
+ *   gameTime: number,
  *   kills: number,
- *   morts: number,
+ *   deathCount: number,
  *   ban: ("TEMP"|"DEF"|"NONE")
  * }}
  */
-function parseInfos(body, href, { pseudo }) {
+function parseInfos(body, href, { username }) {
 	const dom = HTMLParser.parse(body);
 
 	const infos = {};
-	infos.exit_code = 0;
+	infos.code = 0;
 	infos.error = null;
 
-	const pseudoChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
-	if (!pseudoChildren)
-		return { error: 'Player "' + pseudo + '" doesn\'t exists.', exit_code: 1 };
-	infos.grade = pseudoChildren.childNodes[1].text.trim().split(/\s+/gi)[0];
+	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
+	if (!usernameChildren)
+		return { error: 'Player "' + username + '" doesn\'t exists.', code: 1 };
+	infos.grade = usernameChildren.childNodes[1].text.trim().split(/\s+/gi)[0];
 
-	let playerUsername = pseudoChildren.childNodes[1].childNodes[pseudoChildren.childNodes[1].childNodes.length - 2].text.trim();
+	let playerUsername = usernameChildren.childNodes[1].childNodes[usernameChildren.childNodes[1].childNodes.length - 2].text.trim();
 	while (playerUsername.includes(' ')) {
 		playerUsername = playerUsername.split(' ')[1];
 	}
-	infos.pseudo = playerUsername;
+	infos.username = playerUsername;
 	
-	infos['player-id'] = href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
+	infos.userId = href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
 	// infos.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].attributes.src;
 	infos.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].rawAttrs.match(/^src="(.*)"$/)[1];
 	
@@ -500,14 +516,14 @@ function parseInfos(body, href, { pseudo }) {
 	// infos['last-connection'] = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3].childNodes[3].childNodes[3].childNodes[3].attributes.title;
 	infos['last-connection'] = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3].childNodes[3].childNodes[3].childNodes[3].rawAttrs.match(/(^title=|\stitle=)"([^"]*)"/)[2];
 	infos.gloires = parseFCInt(dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3].childNodes[5].childNodes[1].text.trim().replace(/\s+/gi, ""));
-	infos.parties = parseFCInt(dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3].childNodes[5].childNodes[3].text.trim().replace(/\s+/gi, ""));
+	infos.gameCount = parseFCInt(dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3].childNodes[5].childNodes[3].text.trim().replace(/\s+/gi, ""));
 
 	let points = 0;
-	let victoires = 0;
-	let defaites = 0;
+	let winCount = 0;
+	let defeatCount = 0;
 	let tempsJeu = 0;
 	let kills = 0;
-	let morts = 0;
+	let deathCount = 0;
 	let rows = dom.querySelector('#player-stats').childNodes[5].childNodes;
 	let numrow = 0;
 	for (let row of rows) {
@@ -517,26 +533,26 @@ function parseInfos(body, href, { pseudo }) {
 			const partie = parseFCInt(row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, ""));
 			const victoire = parseFCInt(row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, ""));
 			if (!Number.isNaN(victoire))
-				victoires += victoire;
+				winCount += victoire;
 			if (numrow == 3 || numrow == 4 || numrow == 5 || numrow == 6 || numrow == 7 || numrow == 9)
-				defaites += (partie - victoire);
+				defeatCount += (partie - victoire);
 			else
-				defaites += parseFCInt(row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, ""));
+				defeatCount += parseFCInt(row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, ""));
 			const temps = row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, "");
 			if (temps !== "-")
 				tempsJeu += parseInt(temps.split("h")[0], 10) * 60 + parseInt(temps.split("h")[1].replace(/m$/g, ""), 10);
 			kills += parseFCInt(row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, ""));
-			morts += parseFCInt(row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, ""));
+			deathCount += parseFCInt(row.childNodes[1].childNodes[3].childNodes[(++numcol) * 2 + 1].childNodes[3].text.trim().replace(/\s+/gi, ""));
 			numrow++;
 		}
 	}
 
 	infos.points = points;
-	infos.victoires = victoires;
-	infos.defaites = defaites;
-	infos.temps_jeu = tempsJeu;
+	infos.winCount = winCount;
+	infos.defeatCount = defeatCount;
+	infos.gameTime = tempsJeu;
 	infos.kills = kills;
-	infos.morts = morts;
+	infos.deathCount = deathCount;
 
 	const ban = dom.querySelector("div.player-alert");
 	if (ban) {
@@ -577,24 +593,24 @@ function parseFriends(body) {
 
 /**
  * Get head of a player
- * @param {string} pseudo 
+ * @param {string} username 
  * @returns {Promise.<string>}
  */
-function head(pseudo) {
+function head(username) {
 	return new Promise((resolve, reject) => {
-		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(pseudo), (err, res, body) => {
+		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 2 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
 
 			try {
-				const head = parseHead(body, { pseudo });
-				if (head.exit_code === 0)
+				const head = parseHead(body, { username });
+				if (head.code === 0)
 					resolve(head.head);
 				else
 					reject(head);
 			}
 			catch (e) {
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 2 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
 			}
 		});
 	});
@@ -604,22 +620,22 @@ function head(pseudo) {
  * @param {string} body 
  * @param {object} data 
  * @returns {{
- *   exit_code: number,
+ *   code: number,
  *   error: string,
  *   head: string
  * }}
  */
-function parseHead(body, { pseudo }) {
+function parseHead(body, { username }) {
 	const dom = HTMLParser.parse(body);
 	
 	if (!dom.querySelector('#main-layout'))
-		return { error: 'Player "' + pseudo + '" doesn\'t exists.', exit_code: 1 };
-	const pseudoChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
-	if (!pseudoChildren)
-		return { error: 'Player "' + pseudo + '" doesn\'t exists.', exit_code: 1 };
+		return { error: 'Player "' + username + '" doesn\'t exists.', code: 1 };
+	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
+	if (!usernameChildren)
+		return { error: 'Player "' + username + '" doesn\'t exists.', code: 1 };
 
 	return {
-		exit_code: 0,
+		code: 0,
 		error: null,
 		head: dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].attributes.src
 	};
@@ -629,30 +645,30 @@ function parseHead(body, { pseudo }) {
 /**
  * Get stats table of a game
  * @param {string} period 
- * @param {string} mode 
+ * @param {string} game 
  * @returns {Promise<StatsResponse[]>}
  */
-function table(period, mode) {
+function table(period, game) {
 	return new Promise((resolve, reject) => {
-		mode = mode.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-		mode = vGetMode(mode);
-		if (mode === undefined)
-			return reject({ error: "Specified mode is incorrect.", exit_code: 1 });
-		mode = mode.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush');
-		request('https://www.funcraft.net/fr/classement/' + encodeURIComponent(mode) + '/' + encodeURIComponent(period) + '?sendData=1&_=' + Date.now(), (err, res, body) => {
+		game = game.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+		game = vGetGame(game);
+		if (game === undefined)
+			return reject({ error: "Specified game is incorrect.", code: 1 });
+		game = game.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush');
+		request('https://www.funcraft.net/fr/classement/' + encodeURIComponent(game) + '/' + encodeURIComponent(period) + '?sendData=1&_=' + Date.now(), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 2 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
 
 			try {
-				const table = parseTable(body, { period, mode });
-				if (table.exit_code === 0)
+				const table = parseTable(body, { period, game });
+				if (table.code === 0)
 					resolve(table.table);
 				else
 					reject(table);
 			}
 			catch (e) {
 				console.log(e);
-				return reject({ error: "Unable to connect to funcraft.net.", exit_code: 2 });
+				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
 			}
 		});
 	});
@@ -662,27 +678,27 @@ function table(period, mode) {
  * @param {string} body 
  * @param {object} data 
  * @returns {{
- *   exit_code: number,
+ *   code: number,
  *   error: string,
  *   table: StatsResponse[]
  * }}
  */
-function parseTable(body, { period, mode }) {
+function parseTable(body, { period, game }) {
 	const dom = HTMLParser.parse(body);
-	const pseudoChildren = dom.querySelector('.leaderboard-table').childNodes[3];
+	const usernameChildren = dom.querySelector('.leaderboard-table').childNodes[3];
 	const result = [];
-	for (let raw of pseudoChildren.childNodes) {
+	for (let raw of usernameChildren.childNodes) {
 		if (raw.rawTagName !== 'tr')
 			continue;
 
 		const stats = {};
-		stats.exit_code = 0;
+		stats.code = 0;
 		stats.error = null;
 
-		const pseudo = raw.childNodes[3].childNodes[1].childNodes[0].rawText.trim();
-		stats.pseudo = pseudo;
+		const username = raw.childNodes[3].childNodes[1].childNodes[0].rawText.trim();
+		stats.username = username;
 
-		stats.nom_mois = period;
+		stats.monthName = period;
 
 		const datas = [];
 		for (let cell of raw.childNodes) {
@@ -702,12 +718,12 @@ function parseTable(body, { period, mode }) {
 				datas.push(parseInt(contentRow.trim().replace(/\s+/gi, ""), 10));
 		}
 
-		statsFromData(stats, datas, null, getMode(mode));
+		statsFromData(stats, datas, null, getGame(game));
 
-		if (stats.rang === 1 || stats.rang === 2 || stats.rang === 3)
-			stats.skin = dom.querySelector('.podium-' + stats.rang).childNodes[1].childNodes[stats.rang === 1 ? 3 : 1].childNodes[1].childNodes[3].rawAttrs.match(/^src="(.*)"$/)[1];
+		if (stats.rank === 1 || stats.rank === 2 || stats.rank === 3)
+			stats.skin = dom.querySelector('.podium-' + stats.rank).childNodes[1].childNodes[stats.rank === 1 ? 3 : 1].childNodes[1].childNodes[3].rawAttrs.match(/^src="(.*)"$/)[1];
 
-		stats['player-id'] = raw.childNodes[3].childNodes[1].rawAttrs.match(/^href="https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+"$/i)[3];
+		stats.userId = raw.childNodes[3].childNodes[1].rawAttrs.match(/^href="https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+"$/i)[3];
 		result.push(stats);
 	}
 
@@ -722,29 +738,29 @@ function parseTable(body, { period, mode }) {
  */
 function computeStats(stats, data = false) {
 	if (data) {
-		stats['data']['temps_jeu'] = (stats['data']['temps_jeu'] - (stats['data']['temps_jeu'] % 60)) / 60 + 'h' + stats['data']['temps_jeu'] % 60 + 'min';
+		stats['data']['gameTime'] = (stats['data']['gameTime'] - (stats['data']['gameTime'] % 60)) / 60 + 'h' + stats['data']['gameTime'] % 60 + 'min';
 		resolve(formatStats(stats));
 	}
 	else {
-		if (stats['mode_jeu'] == 'shootcraft') {
+		if (stats['game'] == 'shootcraft') {
 			stats['stats']['ragequit'] += '%';
-			stats['stats']['HAT'] = Round(Math.sqrt(Math.pow(stats['stats']['winrate']/100+1, 2.5)*(stats['stats']['kills_minute'] / 5)*((stats['stats']['kills_minute'] * 5)/(stats['stats']['morts_game'] * 5) + 2))*60, 3);
+			stats['stats']['HAT'] = Round(Math.sqrt(Math.pow(stats['stats']['winrate']/100+1, 2.5)*(stats['stats']['killsPerMinute'] / 5)*((stats['stats']['killsPerMinute'] * 5)/(stats['stats']['deathsPerGame'] * 5) + 2))*60, 3);
 		}
 		else
-			stats['stats']['temps_partie'] = ((stats['stats']['temps_partie'] - (stats['stats']['temps_partie'] % 60)) / 60) + ':' + Round(stats['stats']['temps_partie'] % 60, 3);
+			stats['stats']['timePerGame'] = ((stats['stats']['timePerGame'] - (stats['stats']['timePerGame'] % 60)) / 60) + ':' + Round(stats['stats']['timePerGame'] % 60, 3);
 
-		if (stats['mode_jeu'] == 'rush_mdt' || stats['mode_jeu'] == 'rush_retro')
-			stats['stats']['HAT'] = Round(Math.sqrt(stats['data']['parties']/stats['data']['temps_jeu']*60 + stats['stats']['winrate']/100*38 + Math.sqrt(stats['stats']['kd']*300)) * 100, 3);
-		else if (stats['mode_jeu'] == 'hikabrain')
-			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*25 + stats['data']['parties']/stats['data']['temps_jeu']*60 + stats['stats']['kd'] * 8) * 100, 3);
-		else if (stats['mode_jeu'] == 'skywars')
+		if (stats['game'] == 'rush_mdt' || stats['game'] == 'rush_retro')
+			stats['stats']['HAT'] = Round(Math.sqrt(stats['data']['gameCount']/stats['data']['gameTime']*60 + stats['stats']['winrate']/100*38 + Math.sqrt(stats['stats']['kd']*300)) * 100, 3);
+		else if (stats['game'] == 'hikabrain')
+			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*25 + stats['data']['gameCount']/stats['data']['gameTime']*60 + stats['stats']['kd'] * 8) * 100, 3);
+		else if (stats['game'] == 'skywars')
 			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*45 + Math.sqrt(stats['stats']['kd']*25)) * 100, 3);
-		else if (stats['mode_jeu'] == 'survival')
+		else if (stats['game'] == 'survival')
 			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*30 + Math.sqrt(stats['stats']['kd'] * 8)) * 100, 3);
-		else if (stats['mode_jeu'] == 'pvpsmash')
+		else if (stats['game'] == 'pvpsmash')
 			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*20 + Math.sqrt(stats['stats']['kd'] * 8)) * 100, 3);
-		else if (stats['mode_jeu'] == 'blitz')
-			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*10 + 2*stats['stats']['nexus_partie'] + Math.sqrt(stats['stats']['kd'] * 30)) * 100, 3);
+		else if (stats['game'] == 'blitz')
+			stats['stats']['HAT'] = Round(Math.sqrt(stats['stats']['winrate']/100*10 + 2*stats['stats']['nexusPerGame'] + Math.sqrt(stats['stats']['kd'] * 30)) * 100, 3);
 		
 		stats['stats']['winrate'] += '%';
 
@@ -767,21 +783,21 @@ function vGetPeriod(period, strict = false) {
 		p = getMonth(period.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
 	if (p !== undefined) {
 		if (p === 0)
-			p = "toujours";
+			p = "always";
 		else
 			p = months[p - 1];
 	}
 	return p;
 }
 /**
- * Determine wether a string is a valid mode
- * @param {string} mode 
+ * Determine wether a string is a valid game
+ * @param {string} game 
  * @returns {string}
  */
-function vGetMode(mode) {
-	let m = getMode(mode.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+function vGetGame(game) {
+	let m = getGame(game.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
 	if (m !== undefined)
-		m = modes[m];
+		m = games[m];
 	return m;
 }
 
@@ -808,13 +824,21 @@ module.exports = {
 	table,
 	computeStats,
 	statsFromData,
+	parsers: {
+		allStats: parseAllStats,
+		stats: parseStats,
+		infos: parseInfos,
+		head: parseHead,
+		table: parseTable
+	},
 	validators: {
 		getPeriod: vGetPeriod,
-		getMode: vGetMode
+		getGame: vGetGame
 	},
 	data: {
-		modes,
+		games,
 		months,
-		aliases
+		gameAliases,
+		monthAliases
 	}
 };
