@@ -227,8 +227,8 @@ function table(period, game) {
 		game = vGetGame(game);
 		if (game === undefined)
 			return reject({ error: "Specified game is incorrect.", code: 1 });
-		game = game.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush');
-		request('https://www.funcraft.net/fr/classement/' + encodeURIComponent(game) + '/' + encodeURIComponent(period) + '?sendData=1&_=' + Date.now(), (err, res, body) => {
+		const gameUrl = game.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush');
+		request('https://www.funcraft.net/fr/classement/' + encodeURIComponent(gameUrl) + '/' + encodeURIComponent(period) + '?sendData=1&_=' + Date.now(), (err, res, body) => {
 			if (err)
 				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
 

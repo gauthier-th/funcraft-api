@@ -335,7 +335,11 @@ function table(body, { period, game }) {
 		result.push(stats);
 	}
 
-	return result;
+	return {
+		code: 0,
+		error: null,
+		table: result
+	};
 }
 
 
