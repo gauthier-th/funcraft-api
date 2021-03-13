@@ -4,7 +4,8 @@ const {
 	Round,
 	parseFCInt,
 	parseFCDate,
-	getGame
+	getGame,
+	getMonth
 } = require('./utils');
 
 /**
@@ -303,10 +304,10 @@ function table(body, { period, game }) {
 		stats.code = 0;
 		stats.error = null;
 
+		stats.userId = raw.childNodes[3].childNodes[1].rawAttrs.match(/^href="https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+"$/i)[3];
+
 		const username = raw.childNodes[3].childNodes[1].childNodes[0].rawText.trim();
 		stats.username = username;
-
-		stats.monthName = period;
 
 		const datas = [];
 		for (let cell of raw.childNodes) {
@@ -326,12 +327,11 @@ function table(body, { period, game }) {
 				datas.push(parseInt(contentRow.trim().replace(/\s+/gi, ""), 10));
 		}
 
-		statsFromData(stats, datas, null, getGame(game));
+		statsFromData(stats, datas, getMonth(period), getGame(game));
 
 		if (stats.rank === 1 || stats.rank === 2 || stats.rank === 3)
 			stats.skin = dom.querySelector('.podium-' + stats.rank).childNodes[1].childNodes[stats.rank === 1 ? 3 : 1].childNodes[1].childNodes[3].rawAttrs.match(/^src="(.*)"$/)[1];
 
-		stats.userId = raw.childNodes[3].childNodes[1].rawAttrs.match(/^href="https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+"$/i)[3];
 		result.push(stats);
 	}
 

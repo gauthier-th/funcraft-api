@@ -91,7 +91,6 @@ function stats(period, game, username) {
 					reject(stats);
 			}
 			catch (e) {
-				console.log(e);
 				reject({ error: "Unable to connect to funcraft.net.", code: 9 });
 			}
 		});
@@ -241,7 +240,6 @@ function table(period, game) {
 					reject(table);
 			}
 			catch (e) {
-				console.log(e);
 				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
 			}
 		});
