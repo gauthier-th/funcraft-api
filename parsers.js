@@ -1,4 +1,5 @@
 const HTMLParser = require("node-html-parser");
+const errors = require('./errors');
 const {
 	data: { games, months, gameAliases, monthAliases },
 	Round,
@@ -20,7 +21,7 @@ const {
 
 	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
 	if (!usernameChildren)
-		return { error: 'Player "' + username + '" doesn\'t exists.', code: 4 };
+		return errors.stats.unknownPlayer(username);
 
 	const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numGame * 2 + 1].childNodes[1].childNodes[3].childNodes;
 	const datas = [];
@@ -43,7 +44,7 @@ const {
 		}
 	}
 	if (datas[2] === 0)
-		return { error: "Non-existent statistics for this period.", code: 1 };
+		return errors.stats.noStatistics();
 
 	const stats = {};
 	stats.code = 0;
@@ -87,7 +88,7 @@ function allStats(body, href, { username }) {
 
 	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
 	if (!usernameChildren)
-		return { error: 'Player "' + username + '" doesn\'t exists.', code: 4 };
+		return errors.allStats.unknownPlayer(username);
 		
 	let playerUsername = usernameChildren.childNodes[1].childNodes[usernameChildren.childNodes[1].childNodes.length - 2].text.trim();
 	while (playerUsername.includes(' ')) {
@@ -189,7 +190,7 @@ function infos(body, href, { username }) {
 
 	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
 	if (!usernameChildren)
-		return { error: 'Player "' + username + '" doesn\'t exists.', code: 1 };
+		return errors.infos.unknownPlayer(username);
 	infos.grade = usernameChildren.childNodes[1].text.trim().split(/\s+/gi)[0];
 
 	let playerUsername = usernameChildren.childNodes[1].childNodes[usernameChildren.childNodes[1].childNodes.length - 2].text.trim();
@@ -294,6 +295,8 @@ function friends(body) {
  */
 function table(body, { period, game }) {
 	const dom = HTMLParser.parse(body);
+	if (!dom.querySelector('.leaderboard-table'))
+		return errors.table.noStatistics();
 	const usernameChildren = dom.querySelector('.leaderboard-table').childNodes[3];
 	const result = [];
 	for (let raw of usernameChildren.childNodes) {
@@ -314,7 +317,7 @@ function table(body, { period, game }) {
 			if (cell.rawTagName !== 'td')
 				continue;
 
-			const contentRow = cell.childNodes[0].rawText;
+			const contentRow = cell.childNodes[0] ? cell.childNodes[0].rawText : '0';
 			if (contentRow.trim() === '')
 				continue;
 			else if (contentRow.trim().replace("-", "") == '')
@@ -357,10 +360,10 @@ function head(body, { username }) {
 	const dom = HTMLParser.parse(body);
 	
 	if (!dom.querySelector('#main-layout'))
-		return { error: 'Player "' + username + '" doesn\'t exists.', code: 1 };
+		return errors.head.unknownPlayer(username);
 	const usernameChildren = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[3];
 	if (!usernameChildren)
-		return { error: 'Player "' + username + '" doesn\'t exists.', code: 1 };
+		return errors.head.unknownPlayer(username);
 
 	return {
 		code: 0,

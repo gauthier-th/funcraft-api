@@ -1,5 +1,6 @@
 const request = require('request');
 const parsers = require('./parsers');
+const errors = require('./errors');
 const {
 	Round,
 	removeAccents,
@@ -76,13 +77,13 @@ function stats(period, game, username) {
 		const month = getMonth(period);
 		const monthDiff = parseMonth(month);
 		if (monthDiff === undefined || monthDiff > 4)
-			return reject({ error: "Specified period is incorrect.", code: 2 });
+			return reject(errors.stats.incorrectPeriod());
 		const numGame = getGame(game);
 		if (numGame === undefined)
-			return reject({ error: "Specified game is incorrect.", code: 3 });
+			return reject(errors.stats.incorrectGame());
 		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), async (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", code: 9 });
+				return reject(errors.stats.connectionError());
 			try {
 				const stats = parseStats(body, res.request.uri.href, { username, monthDiff, numGame, month });
 				if (stats.code === 0)
@@ -91,7 +92,7 @@ function stats(period, game, username) {
 					reject(stats);
 			}
 			catch (e) {
-				reject({ error: "Unable to connect to funcraft.net.", code: 9 });
+				reject(errors.stats.connectionError());
 			}
 		});
 	});
@@ -117,7 +118,7 @@ function allStats(username) {
 		username = removeAccents(username.trim());
 		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", code: 9 });
+				return reject(errors.allStats.connectionError());
 			try {
 				const stats = parseAllStats(body, res.request.uri.href, { username });
 				if (stats.code === 0)
@@ -126,7 +127,7 @@ function allStats(username) {
 					reject(stats);
 			}
 			catch (e) {
-				return reject({ error: "Unable to connect to funcraft.net.", code: 9 });
+				return reject(errors.allStats.connectionError());
 			}
 		});
 	});
@@ -163,7 +164,7 @@ function infos(username) {
 	return new Promise((resolve, reject) => {
 		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", code: 6 });
+				return reject(errors.infos.connectionError());
 			
 			try {
 				const infos = parseInfos(body, res.request.uri.href, { username });
@@ -171,19 +172,19 @@ function infos(username) {
 					reject(infos);
 				request('https://www.funcraft.net/fr/joueur/' + encodeURIComponent(infos.userId) + '?sendFriends=1', (fErr, fRes, fBody) => {
 					if (fErr)
-						return { error: "Unable to connect to funcraft.net.", code: 6 };
+						return reject(errors.infos.connectionError());
 					try {
 						const friends = parseFriends(fBody);
 						infos.amis = friends;
 						resolve(infos);
 					}
 					catch (e) {
-						return reject({ error: "Unable to connect to funcraft.net.", code: 6 });
+						return reject(errors.infos.connectionError());
 					}
 				});
 			}
 			catch (e) {
-				return reject({ error: "Unable to connect to funcraft.net.", code: 6 });
+				return reject(errors.infos.connectionError());
 			}
 		});
 	});
@@ -198,7 +199,7 @@ function head(username) {
 	return new Promise((resolve, reject) => {
 		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
+				return reject(errors.head.connectionError());
 
 			try {
 				const head = parseHead(body, { username });
@@ -208,7 +209,7 @@ function head(username) {
 					reject(head);
 			}
 			catch (e) {
-				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
+				return reject(errors.head.connectionError());
 			}
 		});
 	});
@@ -226,11 +227,11 @@ function table(period, game) {
 		game = removeAccents(game.trim().toLowerCase());
 		game = vGetGame(game);
 		if (game === undefined)
-			return reject({ error: "Specified game is incorrect.", code: 1 });
+			return reject(errors.table.incorrectGame());
 		const gameUrl = game.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush');
 		request('https://www.funcraft.net/fr/classement/' + encodeURIComponent(gameUrl) + '/' + encodeURIComponent(period) + '?sendData=1&_=' + Date.now(), (err, res, body) => {
 			if (err)
-				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
+				return reject(errors.table.connectionError());
 
 			try {
 				const table = parseTable(body, { period, game });
@@ -240,7 +241,7 @@ function table(period, game) {
 					reject(table);
 			}
 			catch (e) {
-				return reject({ error: "Unable to connect to funcraft.net.", code: 2 });
+				return reject(errors.table.connectionError());
 			}
 		});
 	});
