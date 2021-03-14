@@ -101,6 +101,8 @@ function allStats(body, href, { username }) {
 
 
 	const allStats = {};
+	allStats.code = 0;
+	allStats.error = null;
 	allStats.infos = {};
 	allStats.infos.username = playerUsername;
 	allStats.infos.skin = skin;

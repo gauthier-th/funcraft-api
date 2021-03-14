@@ -128,14 +128,16 @@ function stats(period, game, username) {
  * Get all stats of a player
  * @param {string} username 
  * @returns {Promise.<{
- *   [game: string]: {
- *     [period: string]: StatsResponse
- *     always?: StatsResponse
- *   },
+ *   code: number,
+ *   error: string,
  *   infos: {
  *     username: string,
  *     skin: string,
  *     userId: string
+ *   },
+ *   [game: string]: {
+ *     [period: string]: StatsResponse
+ *     always?: StatsResponse
  *   }
  * }>}
  */
