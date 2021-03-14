@@ -1,5 +1,5 @@
 {
-  "name": "@gauthier-th/funcraft-api",
+  "name": "@gauthier-th/funcraft-api-core",
   "version": "2.1.1",
   "description": "An API for Funcraft.net",
   "main": "index.js",
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gauthier-th/funcraft-api.git"
+    "url": "git+https://github.com/gauthier-th/funcraft-api-core.git"
   },
   "keywords": [],
   "author": "gauthier-th",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/gauthier-th/funcraft-api/issues"
+    "url": "https://github.com/gauthier-th/funcraft-api-core/issues"
   },
-  "homepage": "https://github.com/gauthier-th/funcraft-api#readme",
+  "homepage": "https://github.com/gauthier-th/funcraft-api-core#readme",
   "dependencies": {
     "node-html-parser": "^2.0.2",
     "request": "^2.88.2"
