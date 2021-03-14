@@ -175,7 +175,7 @@ function infos(username) {
 						return reject(errors.infos.connectionError());
 					try {
 						const friends = parseFriends(fBody);
-						infos.amis = friends;
+						infos.friends = friends;
 						resolve(infos);
 					}
 					catch (e) {
