@@ -258,10 +258,8 @@ function table(period, game) {
  * @param {boolean} data 
  */
 function computeStats(stats, data = false) {
-	if (data) {
+	if (data)
 		stats.data.gameTime = (stats.data.gameTime - (stats.data.gameTime % 60)) / 60 + 'h' + stats.data.gameTime % 60 + 'min';
-		resolve(formatStats(stats));
-	}
 	else {
 		if (stats.game === 'shootcraft') {
 			stats.stats.ragequit += '%';
@@ -282,11 +280,10 @@ function computeStats(stats, data = false) {
 			stats.stats.HAT = Round(Math.sqrt(stats.stats.winrate/100*20 + Math.sqrt(stats.stats.kd * 8)) * 100, 3);
 		else if (stats.game === 'blitz')
 			stats.stats.HAT = Round(Math.sqrt(stats.stats.winrate/100*10 + 2*stats.stats.nexusPerGame + Math.sqrt(stats.stats.kd * 30)) * 100, 3);
-		
-		stats.stats.winrate += '%';
 
-		resolve(formatStats(stats));
+		stats.stats.winrate += '%';
 	}
+	return stats;
 }
 
 
