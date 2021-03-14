@@ -59,6 +59,32 @@ const {
  * }} StatsResponse
  */
 
+/**
+ * @typedef {{
+ *   code: number,
+ *   error: string,
+ *   grade: string,
+ *   username: string,
+ *   userId: string,
+ *   skin: string,
+ *   inscription: string,
+ *   lastConnection: string,
+ *   gloires: number,
+ *   gameCount: number,
+ *   points: number,
+ *   winCount: number,
+ *   defeatCount: number,
+ *   gameTime: number,
+ *   kills: number,
+ *   deathCount: number,
+ *   amis:  {
+ *     nom: string,
+ *     skin: string
+ *   }[],
+ *   ban: ("TEMP"|"DEF"|"NONE")
+ * }} InfosResponse
+ */
+
 
 
 
@@ -136,29 +162,7 @@ function allStats(username) {
 /**
  * Get infos about a player
  * @param {string} username 
- * @returns {Promise.<{
- *   code: number,
- *   error: string,
- *   grade: string,
- *   username: string,
- *   userId: string,
- *   skin: string,
- *   inscription: string,
- *   lastConnection: string,
- *   gloires: number,
- *   gameCount: number,
- *   points: number,
- *   winCount: number,
- *   defeatCount: number,
- *   gameTime: number,
- *   kills: number,
- *   deathCount: number,
- *   amis:  {
- *     nom: string,
- *     skin: string
- *   }[],
- *   ban: ("TEMP"|"DEF"|"NONE")
- * }>}
+ * @returns {Promise.<InfosResponse>}
  */
 function infos(username) {
 	return new Promise((resolve, reject) => {

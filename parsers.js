@@ -14,7 +14,7 @@ const {
  * @param {string} body 
  * @param {string} href 
  * @param {object} data 
- * @returns {StatsResponse}
+ * @returns {import('./').StatsResponse}
  */
  function stats(body, href, { username, monthDiff, numGame, month }) {
 	const dom = HTMLParser.parse(body);
@@ -73,8 +73,8 @@ const {
  * @param {object} data 
  * @returns {{
  *   [game: string]: {
- *     [period: string]: StatsResponse
- *     always?: StatsResponse
+ *     [period: string]: import('./').StatsResponse
+ *     always?: import('./').StatsResponse
  *   },
  *   infos: {
  *     username: string,
@@ -161,25 +161,7 @@ function allStats(body, href, { username }) {
  * @param {string} username 
  * @param {string} href 
  * @param {object} data 
- * @returns {{
- *   code: number,
- *   error: string,
- *   grade: string,
- *   username: string,
- *   userId: string,
- *   skin: string,
- *   inscription: string,
- *   lastConnection: string,
- *   gloires: number,
- *   gameCount: number,
- *   points: number,
- *   winCount: number,
- *   defeatCount: number,
- *   gameTime: number,
- *   kills: number,
- *   deathCount: number,
- *   ban: ("TEMP"|"DEF"|"NONE")
- * }}
+ * @returns {import('./').InfosResponse}
  */
 function infos(body, href, { username }) {
 	const dom = HTMLParser.parse(body);
