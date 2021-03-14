@@ -441,7 +441,7 @@ function statsFromData(stats, datas, month, numGame) {
 		stats.stats.killsPerMinute = 0;
 	else {
 		if (games[numGame] === 'shootcraft')
-			stats.stats.killsPerMinute = Round(stats.data.kills / (stats.data.gameCount * 5), 3);
+			stats.stats.killsPerMinute = Round(stats.data.kills / stats.data.gameTime, 3);
 		else
 			stats.stats.killsPerMinute = Round(stats.stats.killsPerGame / (stats.stats.timePerGame / 60), 3);
 	}
