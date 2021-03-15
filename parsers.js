@@ -286,7 +286,7 @@ function friends(body) {
  * @returns {{
  *   code: number,
  *   error: string,
- *   table: StatsResponse[]
+ *   table: import('./').StatsResponse[]
  * }}
  */
 function table(body, { period, game }) {

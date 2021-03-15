@@ -1,16 +1,7 @@
 const request = require('request');
 const parsers = require('./parsers');
 const errors = require('./errors');
-const {
-	Round,
-	removeAccents,
-	getMonth,
-	parseMonth,
-	getGame,
-	vGetGame,
-	vGetPeriod,
-	data
-} = require('./utils');
+const utils = require('./utils'),
 
 const {
 	stats: parseStats,
@@ -20,6 +11,16 @@ const {
 	table: parseTable,
 	head: parseHead
 } = parsers;
+const {
+	Round,
+	removeAccents,
+	getMonth,
+	parseMonth,
+	getGame,
+	vGetGame,
+	vGetPeriod,
+	data
+} = utils;
 
 
 /**
@@ -28,7 +29,7 @@ const {
  *   error: string,
  *   userId: string,
  *   username: string,
- *   month?: number,
+ *   month: number,
  *   monthName: string,
  *   game: string,
  *   rank: number,
@@ -331,9 +332,6 @@ module.exports = {
 	computeStats,
 	parsers,
 	errors,
-	validators: {
-		getPeriod: vGetPeriod,
-		getGame: vGetGame
-	},
+	utils,
 	data
 };
