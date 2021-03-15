@@ -384,7 +384,7 @@ function statsFromData(stats, datas, month, numGame) {
 	stats.data.points = datas[valColumn++];
 	stats.data.gameCount = datas[valColumn++];
 	stats.data.winCount = datas[valColumn++];
-	if (games[numGame] === 'survival' || games[numGame] === 'skywars' || games[numGame] === 'pvpsmash' || games[numGame] === 'octogone' || games[numGame] === 'shootcraft' || games[numGame] === 'infecte')
+	if (games[numGame] === 'survival' || games[numGame] === 'skywars' || games[numGame] === 'pvpsmash' || games[numGame] === 'octogone' || games[numGame] === 'shootcraft' || games[numGame] === 'infected')
 		stats.data.defeatCount = stats.data.gameCount - stats.data.winCount;
 	else
 		stats.data.defeatCount = datas[valColumn++];

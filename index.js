@@ -1,7 +1,7 @@
 const request = require('request');
 const parsers = require('./parsers');
 const errors = require('./errors');
-const utils = require('./utils'),
+const utils = require('./utils');
 
 const {
 	stats: parseStats,
