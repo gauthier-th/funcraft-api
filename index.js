@@ -175,13 +175,15 @@ function infos(username) {
 			try {
 				const infos = parseInfos(body, res.request.uri.href, { username });
 				if (infos.code !== 0)
-					reject(infos);
+					return reject(infos);
 				request('https://www.funcraft.net/fr/joueur/' + encodeURIComponent(infos.userId) + '?sendFriends=1', (fErr, fRes, fBody) => {
 					if (fErr)
 						return reject(errors.infos.connectionError());
 					try {
 						const friends = parseFriends(fBody);
-						infos.friends = friends;
+						if (friends.code !== 0)
+							return reject(friends);
+						infos.friends = friends.friends;
 						resolve(infos);
 					}
 					catch (e) {
@@ -194,6 +196,36 @@ function infos(username) {
 			}
 		});
 	});
+}
+
+/**
+ * Get friends from a player id
+ * @param {string} userId 
+ * @returns {Promise<{
+ *   code: number,
+ *   error: string,
+ *   friends: {
+ *     nom: string,
+ *     skin: string
+ *   }[]
+ * }>}
+ */
+function friends(userId) {
+	return new Promise((resolve, reject) => {
+		request('https://www.funcraft.net/fr/joueur/' + encodeURIComponent(userId) + '?sendFriends=1', (err, res, body) => {
+			if (err)
+				return reject(errors.friends.connectionError());
+			try {
+				const friends = parseFriends(body);
+				if (friends.code !== 0)
+					return reject(friends);
+				resolve(friends);
+			}
+			catch (e) {
+				return reject(errors.friends.connectionError());
+			}
+		});
+	})
 }
 
 /**
@@ -293,10 +325,12 @@ module.exports = {
 	stats,
 	allStats,
 	infos,
+	friends,
 	head,
 	table,
 	computeStats,
 	parsers,
+	errors,
 	validators: {
 		getPeriod: vGetPeriod,
 		getGame: vGetGame

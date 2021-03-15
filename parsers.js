@@ -49,6 +49,8 @@ const {
 	const stats = {};
 	stats.code = 0;
 	stats.error = null;
+	
+	stats.userId = href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
 
 	let playerUsername = usernameChildren.childNodes[1].childNodes[usernameChildren.childNodes[1].childNodes.length - 2].text.trim();
 	while (playerUsername.includes(' ')) {
@@ -58,9 +60,7 @@ const {
 
 	statsFromData(stats, datas, month, numGame);
 
-	// stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].attributes.src;
 	stats.skin = dom.querySelector('#main-layout').childNodes[5].childNodes[1].childNodes[1].childNodes[1].childNodes[1].rawAttrs.match(/^src="(.*)"$/)[1];
-	stats.userId = href.match(/^https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+$/i)[3];
 
 	return stats;
 }
@@ -245,13 +245,21 @@ function infos(body, href, { username }) {
  * Get friends from html body
  * @param {string} body 
  * @returns {{
- *   nom: string,
- *   skin: string
- * }[]}
+ *   code: number,
+ *   error: string,
+ *   friends: {
+ *     nom: string,
+ *     skin: string
+ *   }[]
+ * }}
  */
 function friends(body) {
 	const fDom = HTMLParser.parse(body);
 	const heads = fDom.querySelector("div.players-heads");
+	console.log(heads);
+	if (!heads)
+		return errors.friends.unknownPlayer();
+
 	const fRows = heads ? heads.childNodes : [];
 	const friends = [];
 	for (let row of fRows) {
@@ -263,7 +271,11 @@ function friends(body) {
 		}
 	}
 
-	return friends;
+	return {
+		code: 0,
+		error: null,
+		friends
+	};
 }
 
 
