@@ -78,7 +78,7 @@ const {
  *   gameTime: number,
  *   kills: number,
  *   deathCount: number,
- *   amis:  {
+ *   friends?:  {
  *     nom: string,
  *     skin: string
  *   }[],
