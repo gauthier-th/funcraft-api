@@ -167,7 +167,7 @@ function allStats(username) {
  * @param {string} username 
  * @returns {Promise.<InfosResponse>}
  */
-function infos(username) {
+function infos(username, fetchFriends = true) {
 	return new Promise((resolve, reject) => {
 		request('https://www.funcraft.net/fr/joueurs?q=' + encodeURIComponent(username), (err, res, body) => {
 			if (err)
@@ -177,20 +177,24 @@ function infos(username) {
 				const infos = parseInfos(body, res.request.uri.href, { username });
 				if (infos.code !== 0)
 					return reject(infos);
-				request('https://www.funcraft.net/fr/joueur/' + encodeURIComponent(infos.userId) + '?sendFriends=1', (fErr, fRes, fBody) => {
-					if (fErr)
-						return reject(errors.infos.connectionError());
-					try {
-						const friends = parseFriends(fBody);
-						if (friends.code !== 0)
-							return reject(friends);
-						infos.friends = friends.friends;
-						resolve(infos);
-					}
-					catch (e) {
-						return reject(errors.infos.connectionError());
-					}
-				});
+				else if (fetchFriends) {
+					request('https://www.funcraft.net/fr/joueur/' + encodeURIComponent(infos.userId) + '?sendFriends=1', (fErr, fRes, fBody) => {
+						if (fErr)
+							return reject(errors.infos.connectionError());
+						try {
+							const friends = parseFriends(fBody);
+							if (friends.code !== 0)
+								return reject(friends);
+							infos.friends = friends.friends;
+							resolve(infos);
+						}
+						catch (e) {
+							return reject(errors.infos.connectionError());
+						}
+					});
+				}
+				else
+					return resolve(infos);
 			}
 			catch (e) {
 				return reject(errors.infos.connectionError());
