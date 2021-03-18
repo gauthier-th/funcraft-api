@@ -256,7 +256,6 @@ function infos(body, href, { username }) {
 function friends(body) {
 	const fDom = HTMLParser.parse(body);
 	const heads = fDom.querySelector("div.players-heads");
-	console.log(heads);
 	if (!heads)
 		return errors.friends.unknownPlayer();
 
