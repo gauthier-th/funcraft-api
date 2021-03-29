@@ -1,6 +1,6 @@
 {
-  "name": "@gauthier-th/funcraft-api-core",
-  "version": "2.2.5",
+  "name": "funcraft-api",
+  "version": "2.2.6",
   "description": "An API for Funcraft.net",
   "main": "index.js",
   "scripts": {
@@ -20,8 +20,5 @@
   "dependencies": {
     "node-html-parser": "^2.0.2",
     "request": "^2.88.2"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   }
 }

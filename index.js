@@ -18,7 +18,6 @@ const {
 	parseMonth,
 	getGame,
 	vGetGame,
-	vGetPeriod,
 	data
 } = utils;
 
