@@ -1,6 +1,6 @@
 # API Funcraft
 
-Une API non-officielle pour récupérer les statistiques de FunCraft.net !
+Une API pour récupérer les statistiques de FunCraft.net !
 
 ## Sommaire
 
