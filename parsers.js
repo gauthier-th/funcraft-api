@@ -160,7 +160,7 @@ function allStats(body, href, { username }) {
 
 /**
  * Get infos from html body
- * @param {string} username 
+ * @param {string} body 
  * @param {string} href 
  * @param {object} data 
  * @returns {import('./').InfosResponse}
@@ -369,7 +369,14 @@ function head(body, { username }) {
 
 
 
-
+/**
+ * 
+ * @param {object} stats 
+ * @param {object} datas 
+ * @param {number} month 
+ * @param {number} numGame 
+ * @returns {object}
+ */
 function statsFromData(stats, datas, month, numGame) {
 	if (month !== null && month !== undefined) {
 		stats.month = month;

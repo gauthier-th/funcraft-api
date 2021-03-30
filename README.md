@@ -307,6 +307,14 @@ Les noms et alias des jeux sont :
 
 Note : les accents ne sont pas pris en compte.
 
+### Outils
+
+Vous pouvez récupérer les liste des noms et alias des jeux dans `FuncraftApi.utils.data`.
+
+Les fonction `FuncraftApi.utils.vGetPeriod` et `FuncraftApi.utils.vGetGame` servent à déterminer si une période ou un mode de jeu est valide.
+
+Se référer à la JSDoc ou voir le code source pour plus de détails.
+
 ## Licence
 
 Licence MIT

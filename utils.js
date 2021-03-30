@@ -85,7 +85,10 @@ function parseFCDate(value, utc = 'UTC+01') {
 }
 
 
-
+/**
+ * @param {string} period 
+ * @returns {number}
+ */
 function getMonth(period) {
 	if (period.match(/^\d+$/) && parseInt(period) <= 12 && parseInt(period) >= 0)
 		return parseInt(period);
@@ -98,6 +101,10 @@ function getMonth(period) {
 	if (period === "always" || period === "toujours")
 		return 0;
 }
+/**
+ * @param {string} month 
+ * @returns {number}
+ */
 function parseMonth(month) {
 	if (month === undefined)
 		return;
@@ -108,6 +115,10 @@ function parseMonth(month) {
 		numMonth = 12 + numMonth;
 	return numMonth + 1;
 }
+/**
+ * @param {string} game 
+ * @returns {string}
+ */
 function getGame(game) {
 	game = game.replace(/[\s-]+/g, '_');
 	if (Object.keys(gameAliases).includes(game))

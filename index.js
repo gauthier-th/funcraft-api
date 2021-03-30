@@ -93,7 +93,7 @@ const {
  * @param {string} period 
  * @param {string} game 
  * @param {string} username 
- * @returns {Promise.<StatsResponse>}
+ * @returns {Promise<StatsResponse>}
  */
 function stats(period, game, username) {
 	return new Promise((resolve, reject) => {
@@ -127,7 +127,7 @@ function stats(period, game, username) {
 /**
  * Get all stats of a player
  * @param {string} username 
- * @returns {Promise.<{
+ * @returns {Promise<{
  *   code: number,
  *   error: string,
  *   infos: {
@@ -164,7 +164,7 @@ function allStats(username) {
 /**
  * Get infos about a player
  * @param {string} username 
- * @returns {Promise.<InfosResponse>}
+ * @returns {Promise<InfosResponse>}
  */
 function infos(username, fetchFriends = true) {
 	return new Promise((resolve, reject) => {
@@ -235,7 +235,7 @@ function friends(userId) {
 /**
  * Get head of a player
  * @param {string} username 
- * @returns {Promise.<string>}
+ * @returns {Promise<string>}
  */
 function head(username) {
 	return new Promise((resolve, reject) => {
@@ -294,6 +294,7 @@ function table(period, game) {
  * Compute some stats properties
  * @param {object} stats 
  * @param {boolean} data 
+ * @returns {object}
  */
 function computeStats(stats, data = false) {
 	if (data)

@@ -1,9 +1,10 @@
 {
   "name": "funcraft-api",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "description": "Une API pour récupérer les statistiques de FunCraft.net !",
   "main": "index.js",
   "scripts": {
+    "ts": "npx typescript index.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,5 +21,9 @@
   "dependencies": {
     "node-html-parser": "^2.0.2",
     "request": "^2.88.2"
-  }
+  },
+  "devDependencies": {
+    "typescript": "^4.2.3"
+  },
+  "types": "types/index.d.ts"
 }
