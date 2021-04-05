@@ -292,35 +292,49 @@ function table(period, game) {
 
 /**
  * Compute some stats properties
- * @param {object} stats 
+ * @param {StatsResponse} stats 
+ * @param {boolean} onlyHat 
  * @param {boolean} data 
- * @returns {object}
+ * @returns {StatsResponse}
  */
-function computeStats(stats, data = false) {
-	if (data)
+function computeStats(stats, onlyHat = false, data = false) {
+	if (data && !onlyHat)
 		stats.data.gameTime = (stats.data.gameTime - (stats.data.gameTime % 60)) / 60 + 'h' + stats.data.gameTime % 60 + 'min';
 	else {
-		if (stats.game === 'shootcraft') {
+		if (stats.game === 'shootcraft' && !onlyHat)
 			stats.stats.ragequit += '%';
-			stats.stats.HAT = Round(Math.sqrt(Math.pow(stats.stats.winrate/100+1, 2.5)*(stats.stats.killsPerMinute / 5)*((stats.stats.killsPerMinute * 5)/(stats.stats.deathsPerGame * 5) + 2))*60, 3);
-		}
-		else
+		else if (!onlyHat)
 			stats.stats.timePerGame = ((stats.stats.timePerGame - (stats.stats.timePerGame % 60)) / 60) + ':' + Round(stats.stats.timePerGame % 60, 3);
 
-		if (stats.game === 'rush_mdt' || stats.game === 'rush_retro')
-			stats.stats.HAT = Round(Math.sqrt(stats.data.gameCount/stats.data.gameTime*60 + stats.stats.winrate/100*38 + Math.sqrt(stats.stats.kd*300)) * 100, 3);
+		const WR = stats.stats.winrate / 100;
+		const KD = stats.stats.kd ? stats.stats.kd : stats.data.kills;
+		const VH = stats.data.winCount / (stats.data.gameTime / 60);
+		const KG = stats.stats.killsPerGame;
+		const KM = stats.stats.killsPerMinute;
+		const NG = stats.stats.nexusPerGame;
+		if (stats.game === 'rush_retro')
+			stats.stats.HAT = Round(10 * Math.pow(WR, 3/2)  +  10 / (1 + Math.exp(-2 * Math.log(1/2 * (KD) + 0.000001))), 3);
+		else if (stats.game === 'rush_mdt')
+			stats.stats.HAT = Round(10 * Math.pow(WR, 2)  +  10 / (1 + Math.exp(-1.5 * ((KD) - 2))), 3);
 		else if (stats.game === 'hikabrain')
-			stats.stats.HAT = Round(Math.sqrt(stats.stats.winrate/100*25 + stats.data.gameCount/stats.data.gameTime*60 + stats.stats.kd * 8) * 100, 3);
+			stats.stats.HAT = Round((38/3) * Math.pow(WR, 3)  +  (8/3) / (1 + Math.exp(-0.25 * ((VH) - 20))) + (14/3)/(1 + Math.exp(-3 * ((KD) - 1.5))), 3);
 		else if (stats.game === 'skywars')
-			stats.stats.HAT = Round(Math.sqrt(stats.stats.winrate/100*45 + Math.sqrt(stats.stats.kd*25)) * 100, 3);
+			stats.stats.HAT = Round(13 * Math.pow(WR, 1/2) + 7 / (1 + Math.exp(-2 * Math.log(1/4 * (KD) + 0.000001))), 3);
+		else if (stats.game === 'octogone')
+			stats.stats.HAT = Round(10 * Math.pow(WR, 1/2)  +  10 / (1 + Math.exp(-4 * ((KG) - 2.2 ))), 3);
+		else if (stats.game === 'shootcraft')
+			stats.stats.HAT = Round(8 * Math.pow(WR, 2/3)  +  4 / (1 + Math.exp(-2 * ((KD) - 2 )))  +  8 / (1 + Math.exp(-0.5 * ((KM) - 10))), 3);
 		else if (stats.game === 'survival')
-			stats.stats.HAT = Round(Math.sqrt(stats.stats.winrate/100*30 + Math.sqrt(stats.stats.kd * 8)) * 100, 3);
-		else if (stats.game === 'pvpsmash')
-			stats.stats.HAT = Round(Math.sqrt(stats.stats.winrate/100*20 + Math.sqrt(stats.stats.kd * 8)) * 100, 3);
+			stats.stats.HAT = Round(13 * Math.pow(WR, 3/2)  +  7 / (1 + Math.exp(-2 * Math.log(1/10 * (KD) + 0.000001))), 3);
 		else if (stats.game === 'blitz')
-			stats.stats.HAT = Round(Math.sqrt(stats.stats.winrate/100*10 + 2*stats.stats.nexusPerGame + Math.sqrt(stats.stats.kd * 30)) * 100, 3);
+			stats.stats.HAT = Round(10 * Math.pow(WR, 2)  +  2 / (1 + Math.exp(-5 * ((NG) - 0.75)))  +  8 / (1 + Math.exp(-2 * ((KD) - 1.8))), 3);
+		else if (stats.game === 'pvpsmash')
+			stats.stats.HAT = Round(10 * Math.pow(WR, 1/3)  +  10 / (1 + Math.exp(-2 * Math.log(1/2 * (KD) + 0.000001))), 3);
+		else if (stats.game === 'landrush')
+			stats.stats.HAT = Round(10 * Math.pow(WR, 1/3)  +  10 / (1 + Math.exp(-2 * Math.log(1/2 * (KD) + 0.000001))), 3);
 
-		stats.stats.winrate += '%';
+		if (!onlyHat)
+			stats.stats.winrate += '%';
 	}
 	return stats;
 }
