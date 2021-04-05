@@ -270,7 +270,7 @@ function table(period, game) {
 		game = vGetGame(game);
 		if (game === undefined)
 			return reject(errors.table.incorrectGame());
-		const gameUrl = game.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush');
+		const gameUrl = game.replace(/^rush_retro$/, 'rushretro').replace(/^rush_mdt$/, 'rush').replace(/^octogone$/, 'mma');
 		request('https://www.funcraft.net/fr/classement/' + encodeURIComponent(gameUrl) + '/' + encodeURIComponent(period) + '?sendData=1&_=' + Date.now(), (err, res, body) => {
 			if (err)
 				return reject(errors.table.connectionError());

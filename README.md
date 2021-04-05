@@ -84,7 +84,7 @@ FuncraftApi.stats('toujours', 'shootcraft', 'jujoh').then(console.log).catch(con
 Renvoie une [promesse](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Promise) contenant les statistiques de tous les modes de jeux dans toutes les périodes disponibles.
 
 ```js
-FuncraftApi.stats('jujoh').then(console.log).catch(console.error);
+FuncraftApi.allStats('jujoh').then(console.log).catch(console.error);
 ```
 
 ```js
