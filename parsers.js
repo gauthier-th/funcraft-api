@@ -1,7 +1,7 @@
 const HTMLParser = require("node-html-parser");
 const errors = require('./errors');
 const {
-	data: { games, months, gameAliases, monthAliases },
+	data: { games, months },
 	Round,
 	parseFCInt,
 	parseFCDate,
@@ -108,7 +108,7 @@ function allStats(body, href, { username }) {
 	allStats.infos.skin = skin;
 	allStats.infos.userId = playerId;
 
-	for (let numGame = 0; numGame < 10; numGame++) {
+	for (let numGame = 0; numGame < games.length; numGame++) {
 		const gameName = games[numGame];
 		const rows = dom.querySelector('#player-stats').childNodes[5].childNodes[numGame * 2 + 1].childNodes[1].childNodes[3].childNodes;
 		allStats[gameName] = {};
