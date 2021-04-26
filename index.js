@@ -299,7 +299,7 @@ function table(period, game) {
  */
 function computeStats(stats, onlyHat = false, data = false) {
 	if (data && !onlyHat)
-		stats.data.gameTime = (stats.data.gameTime - (stats.data.gameTime % 60)) / 60 + 'h' + stats.data.gameTime % 60 + 'min';
+		stats.data.gameTime = (stats.data.gameTime - (stats.data.gameTime % 60)) / 60 + 'h' + ('0'.repeat(2 - (stats.data.gameTime % 60).toString().length) + (stats.data.gameTime % 60)) + 'min';
 	else {
 		if (stats.game === 'shootcraft' && !onlyHat)
 			stats.stats.ragequit += '%';

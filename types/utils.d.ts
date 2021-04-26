@@ -66,13 +66,13 @@ export function parseMonth(month: string): number;
  */
 export function getGame(game: string): string;
 /**
- * Determine wether a string is a valid period
+ * Determine whether a string is a valid period
  * @param {string} period
  * @returns {string}
  */
 export function vGetPeriod(period: string, strict?: boolean): string;
 /**
- * Determine wether a string is a valid game
+ * Determine whether a string is a valid game
  * @param {string} game
  * @returns {string}
  */

@@ -129,7 +129,7 @@ function getGame(game) {
 
 
 /**
- * Determine wether a string is a valid period
+ * Determine whether a string is a valid period
  * @param {string} period 
  * @returns {string}
  */
@@ -148,7 +148,7 @@ function vGetPeriod(period, strict = false) {
 	return p;
 }
 /**
- * Determine wether a string is a valid game
+ * Determine whether a string is a valid game
  * @param {string} game 
  * @returns {string}
  */

@@ -195,11 +195,12 @@ export function head(username: string): Promise<string>;
 export function table(period: string, game: string): Promise<StatsResponse[]>;
 /**
  * Compute some stats properties
- * @param {object} stats
+ * @param {StatsResponse} stats
+ * @param {boolean} onlyHat
  * @param {boolean} data
- * @returns {object}
+ * @returns {StatsResponse}
  */
-export function computeStats(stats: object, data?: boolean): object;
+export function computeStats(stats: StatsResponse, onlyHat?: boolean, data?: boolean): StatsResponse;
 import parsers = require("./parsers");
 import errors = require("./errors");
 import utils = require("./utils");
