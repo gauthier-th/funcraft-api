@@ -85,6 +85,28 @@ const {
  * }} InfosResponse
  */
 
+/**
+ * @typedef {{
+ *   code: number,
+ *   error: string,
+ *   infos: {
+ *     username: string,
+ *     skin: string,
+ *     userId: string
+ *   },
+ *   [game: string]: (
+ *     number | string | {
+ *       [period: string]: StatsResponse
+ *       always?: StatsResponse
+ *     } | {
+ *       username: string,
+ *       skin: string,
+ *       userId: string
+ *     }
+ *   )
+ * }} AllStatsResponse
+ */
+
 
 
 
@@ -127,19 +149,7 @@ function stats(period, game, username) {
 /**
  * Get all stats of a player
  * @param {string} username 
- * @returns {Promise<{
- *   code: number,
- *   error: string,
- *   infos: {
- *     username: string,
- *     skin: string,
- *     userId: string
- *   },
- *   [game: string]: {
- *     [period: string]: StatsResponse
- *     always?: StatsResponse
- *   }
- * }>}
+ * @returns {Promise<AllStatsResponse>}
  */
 function allStats(username) {
 	return new Promise((resolve, reject) => {

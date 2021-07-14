@@ -1,6 +1,6 @@
 {
   "name": "funcraft-api",
-  "version": "2.2.13",
+  "version": "2.2.15",
   "description": "Une API pour récupérer les statistiques de FunCraft.net !",
   "main": "index.js",
   "scripts": {

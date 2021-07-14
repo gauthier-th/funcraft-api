@@ -13,7 +13,7 @@ const {
  * Get stats from html body
  * @param {string} body 
  * @param {string} href 
- * @param {object} data 
+ * @param {{ username: string, monthDiff: number, numGame: number, month: number }} data 
  * @returns {import('./').StatsResponse}
  */
  function stats(body, href, { username, monthDiff, numGame, month }) {
@@ -70,18 +70,8 @@ const {
  * Get all stats from html body
  * @param {string} body 
  * @param {string} href 
- * @param {object} data 
- * @returns {{
- *   [game: string]: {
- *     [period: string]: import('./').StatsResponse
- *     always?: import('./').StatsResponse
- *   },
- *   infos: {
- *     username: string,
- *     skin: string,
- *     userId: string
- *   }
- * }}
+ * @param {{ username: string }} data 
+ * @returns {import('./').AllStatsResponse}
  */
 function allStats(body, href, { username }) {
 	const dom = HTMLParser.parse(body);
@@ -162,7 +152,7 @@ function allStats(body, href, { username }) {
  * Get infos from html body
  * @param {string} body 
  * @param {string} href 
- * @param {object} data 
+ * @param {{ username: string }} data 
  * @returns {import('./').InfosResponse}
  */
 function infos(body, href, { username }) {
@@ -281,7 +271,7 @@ function friends(body) {
 /**
  * Get stats table from html body
  * @param {string} body 
- * @param {object} data 
+ * @param {{ period: string, game: string }} data 
  * @returns {{
  *   code: number,
  *   error: string,
@@ -344,7 +334,7 @@ function table(body, { period, game }) {
 /**
  * Get head fril html body
  * @param {string} body 
- * @param {object} data 
+ * @param {{ username: string }} data 
  * @returns {{
  *   code: number,
  *   error: string,

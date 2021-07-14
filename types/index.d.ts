@@ -39,8 +39,8 @@ export type InfosResponse = {
     username: string;
     userId: string;
     skin: string;
-    inscription: string;
-    lastConnection: string;
+    inscription: Date;
+    lastConnection: Date;
     gloires: number;
     gameCount: number;
     points: number;
@@ -54,6 +54,23 @@ export type InfosResponse = {
         skin: string;
     }[];
     ban: ("TEMP" | "DEF" | "NONE");
+};
+export type AllStatsResponse = {
+    [game: string]: string | number | {
+        [period: string]: StatsResponse;
+        always?: StatsResponse;
+    } | {
+        username: string;
+        skin: string;
+        userId: string;
+    };
+    code: number;
+    error: string;
+    infos: {
+        username: string;
+        skin: string;
+        userId: string;
+    };
 };
 /**
  * @typedef {{
@@ -99,8 +116,8 @@ export type InfosResponse = {
  *   username: string,
  *   userId: string,
  *   skin: string,
- *   inscription: string,
- *   lastConnection: string,
+ *   inscription: Date,
+ *   lastConnection: Date,
  *   gloires: number,
  *   gameCount: number,
  *   points: number,
@@ -117,6 +134,27 @@ export type InfosResponse = {
  * }} InfosResponse
  */
 /**
+ * @typedef {{
+ *   code: number,
+ *   error: string,
+ *   infos: {
+ *     username: string,
+ *     skin: string,
+ *     userId: string
+ *   },
+ *   [game: string]: (
+ *     number | string | {
+ *       [period: string]: StatsResponse
+ *       always?: StatsResponse
+ *     } | {
+ *       username: string,
+ *       skin: string,
+ *       userId: string
+ *     }
+ *   )
+ * }} AllStatsResponse
+ */
+/**
  * Get stats for a player, for a game in a specific period
  * @param {string} period
  * @param {string} game
@@ -127,33 +165,9 @@ export function stats(period: string, game: string, username: string): Promise<S
 /**
  * Get all stats of a player
  * @param {string} username
- * @returns {Promise<{
- *   code: number,
- *   error: string,
- *   infos: {
- *     username: string,
- *     skin: string,
- *     userId: string
- *   },
- *   [game: string]: {
- *     [period: string]: StatsResponse
- *     always?: StatsResponse
- *   }
- * }>}
+ * @returns {Promise<AllStatsResponse>}
  */
-export function allStats(username: string): Promise<{
-    [game: string]: {
-        [period: string]: StatsResponse;
-        always?: StatsResponse;
-    };
-    code: number;
-    error: string;
-    infos: {
-        username: string;
-        skin: string;
-        userId: string;
-    };
-}>;
+export function allStats(username: string): Promise<AllStatsResponse>;
 /**
  * Get infos about a player
  * @param {string} username

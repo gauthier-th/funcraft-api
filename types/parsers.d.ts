@@ -2,46 +2,35 @@
  * Get stats from html body
  * @param {string} body
  * @param {string} href
- * @param {object} data
+ * @param {{ username: string, monthDiff: number, numGame: number, month: number }} data
  * @returns {import('./').StatsResponse}
  */
-export function stats(body: string, href: string, { username, monthDiff, numGame, month }: object): import('./').StatsResponse;
+export function stats(body: string, href: string, { username, monthDiff, numGame, month }: {
+    username: string;
+    monthDiff: number;
+    numGame: number;
+    month: number;
+}): import('./').StatsResponse;
 /**
  * Get all stats from html body
  * @param {string} body
  * @param {string} href
- * @param {object} data
- * @returns {{
- *   [game: string]: {
- *     [period: string]: import('./').StatsResponse
- *     always?: import('./').StatsResponse
- *   },
- *   infos: {
- *     username: string,
- *     skin: string,
- *     userId: string
- *   }
- * }}
+ * @param {{ username: string }} data
+ * @returns {import('./').AllStatsResponse}
  */
-export function allStats(body: string, href: string, { username }: object): {
-    [game: string]: {
-        [period: string]: import("./").StatsResponse;
-        always?: import('./').StatsResponse;
-    };
-    infos: {
-        username: string;
-        skin: string;
-        userId: string;
-    };
-};
+export function allStats(body: string, href: string, { username }: {
+    username: string;
+}): import('./').AllStatsResponse;
 /**
  * Get infos from html body
  * @param {string} body
  * @param {string} href
- * @param {object} data
+ * @param {{ username: string }} data
  * @returns {import('./').InfosResponse}
  */
-export function infos(body: string, href: string, { username }: object): import('./').InfosResponse;
+export function infos(body: string, href: string, { username }: {
+    username: string;
+}): import('./').InfosResponse;
 /**
  * Get friends from html body
  * @param {string} body
@@ -65,14 +54,17 @@ export function friends(body: string): {
 /**
  * Get stats table from html body
  * @param {string} body
- * @param {object} data
+ * @param {{ period: string, game: string }} data
  * @returns {{
  *   code: number,
  *   error: string,
  *   table: import('./').StatsResponse[]
  * }}
  */
-export function table(body: string, { period, game }: object): {
+export function table(body: string, { period, game }: {
+    period: string;
+    game: string;
+}): {
     code: number;
     error: string;
     table: import('./').StatsResponse[];
@@ -80,14 +72,16 @@ export function table(body: string, { period, game }: object): {
 /**
  * Get head fril html body
  * @param {string} body
- * @param {object} data
+ * @param {{ username: string }} data
  * @returns {{
  *   code: number,
  *   error: string,
  *   head: string
  * }}
  */
-export function head(body: string, { username }: object): {
+export function head(body: string, { username }: {
+    username: string;
+}): {
     code: number;
     error: string;
     head: string;
