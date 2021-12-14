@@ -292,10 +292,15 @@ function table(body, { period, game }) {
 		stats.code = 0;
 		stats.error = null;
 
-		stats.userId = raw.childNodes[period === 'always' ? 3 : 5].childNodes[1].rawAttrs.match(/^href="https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)\/\w+"$/i)[3];
+		const userUrlMatch = raw.childNodes[period === 'always' ? 3 : 5].childNodes[1].rawAttrs.match(/^href="https?:\/\/(www\.)?funcraft\.\w{1,3}(\/\w+){2}\/(\d+)(\/\w+)?"$/i);
+		stats.userId = userUrlMatch[3];
 
-		const username = raw.childNodes[period === 'always' ? 3 : 5].childNodes[1].childNodes[0].rawText.trim();
-		stats.username = username;
+		if (userUrlMatch[4]) {
+			const username = raw.childNodes[period === 'always' ? 3 : 5].childNodes[1].childNodes[0].rawText.trim();
+			stats.username = username;
+		}
+		else
+			stats.username = "";
 
 		const datas = [];
 		for (let cell of raw.childNodes) {
