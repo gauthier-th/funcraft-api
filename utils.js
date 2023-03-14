@@ -1,4 +1,4 @@
-const games = ['rush_retro', 'rush_mdt', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infected', 'survival', 'blitz', 'pvpsmash', 'landrush'];
+const games = ['rush_mdt', 'hikabrain', 'skywars', 'octogone', 'shootcraft', 'infected', 'blitz', 'pvpsmash', 'survival', 'rush_retro', 'landrush'];
 const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 const gameAliases = {
 	"infecte": "infected",
